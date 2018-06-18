@@ -19,13 +19,13 @@ export class RabbitMQService {
 
   public async consumer(
     queue: string,
-    cb: (msg: Message) => Promise<boolean>
+    cb: (msg: Buffer) => Promise<boolean>
   ): Promise<void> {
     const con = await connect(this.url);
     const chan: Channel = await con.createChannel();
     await chan.assertQueue(queue);
     await chan.consume(queue, async (msg: Message) => {
-      const ret = await cb(msg);
+      const ret = await cb(msg.content);
       if (ret) {
         chan.ack(msg);
       }

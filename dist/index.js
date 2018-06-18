@@ -30,7 +30,7 @@ class RabbitMQService {
             const chan = yield con.createChannel();
             yield chan.assertQueue(queue);
             yield chan.consume(queue, (msg) => __awaiter(this, void 0, void 0, function* () {
-                const ret = yield cb(msg);
+                const ret = yield cb(msg.content);
                 if (ret) {
                     chan.ack(msg);
                 }
