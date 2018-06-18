@@ -1,16 +1,16 @@
 {
-  "name": "rabbitmq-common-service",
-  "version": "1.0.1",
-  "description": "rabbitmq common service",
+  "name": "rabbitmq-service",
+  "version": "0.0.2",
+  "description": "rabbitmq service",
   "main": "dist/index.js",
-  "private": true,
   "types": "types",
   "scripts": {
-    "build": "rm -rf dist types && tsc"
+    "build": "rm -rf dist types && tsc",
+    "pub": "git push --all && git push --tags && npm publish"
   },
   "repository": {
     "type": "git",
-    "url": "http://101.200.63.188/coinu/rabbitmq-common.git"
+    "url": "https://github.com/isLishude/rabbitmq.git"
   },
   "author": "lishude",
   "license": "MIT",

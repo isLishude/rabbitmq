@@ -8,7 +8,8 @@
     "alwaysStrict": true,
     "moduleResolution": "node",
     "declaration": true,
-    "declarationDir": "types"
+    "declarationDir": "types",
+    "strictNullChecks": true
   },
   "include": ["src/**/*", "defined/*.d.ts"],
   "exclude": ["node_modules"]

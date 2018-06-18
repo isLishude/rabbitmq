@@ -11,33 +11,43 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const amqplib_1 = require("amqplib");
 const console_1 = require("console");
 class RabbitMQService {
-    constructor(con) {
-        this.url = con;
+    constructor(uri) {
+        this.uri = uri;
     }
-    producer(msg, queue) {
+    producer(queue, msg) {
         return __awaiter(this, void 0, void 0, function* () {
-            const con = yield amqplib_1.connect(this.url);
-            const chan = yield con.createChannel();
+            const chan = yield this.init(this.uri);
             yield chan.assertQueue(queue);
-            const ret = yield chan.sendToQueue(queue, Buffer.from(msg), {
+            yield chan.sendToQueue(queue, Buffer.from(msg), {
                 persistent: true
             });
-            return ret;
         });
     }
     consumer(queue, cb) {
         return __awaiter(this, void 0, void 0, function* () {
-            const con = yield amqplib_1.connect(this.url);
-            const chan = yield con.createChannel();
+            const chan = yield this.init(this.uri);
             yield chan.assertQueue(queue);
-            yield chan.consume(queue, (msg) => {
-                cb(msg.content)
-                    .then(() => chan.ack(msg))
-                    .catch(rej => {
+            yield chan.consume(queue, (msg) => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    yield cb(msg.content);
+                    chan.ack(msg);
+                }
+                catch (rej) {
                     console_1.log(rej);
                     chan.nack(msg);
-                });
-            });
+                }
+            }));
+        });
+    }
+    init(uri) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!RabbitMQService.connect) {
+                RabbitMQService.connect = yield amqplib_1.connect(uri);
+            }
+            if (!this.channel) {
+                this.channel = yield RabbitMQService.connect.createChannel();
+            }
+            return this.channel;
         });
     }
 }

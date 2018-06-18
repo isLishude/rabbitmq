@@ -1,7 +1,10 @@
 /// <reference types="node" />
 export declare class RabbitMQService {
-    private url;
-    constructor(con: string);
-    producer(msg: string, queue: string): Promise<boolean>;
+    private static connect;
+    private channel;
+    private uri;
+    constructor(uri: string);
+    producer(queue: string, msg: string): Promise<void>;
     consumer(queue: string, cb: (msg: Buffer) => Promise<boolean>): Promise<void>;
+    private init;
 }

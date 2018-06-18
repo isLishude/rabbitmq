@@ -1,37 +1,46 @@
-import { Channel, connect, Message } from "amqplib";
+import { Channel, connect, Connection, Message } from "amqplib";
 import { log } from "console";
 
 export class RabbitMQService {
-  private url: string;
-  constructor(con: string) {
-    this.url = con;
+  private static connect: Connection;
+  private channel: Channel;
+  private uri: string;
+  constructor(uri: string) {
+    this.uri = uri;
   }
 
-  public async producer(msg: string, queue: string): Promise<boolean> {
-    const con = await connect(this.url);
-    const chan: Channel = await con.createChannel();
+  public async producer(queue: string, msg: string): Promise<void> {
+    const chan: Channel = await this.init(this.uri);
     await chan.assertQueue(queue);
-    const ret: boolean = await chan.sendToQueue(queue, Buffer.from(msg), {
-      // RabbitMQ重启时，消息会被保存到磁盘
+    await chan.sendToQueue(queue, Buffer.from(msg), {
       persistent: true
     });
-    return ret;
   }
 
   public async consumer(
     queue: string,
     cb: (msg: Buffer) => Promise<boolean>
   ): Promise<void> {
-    const con = await connect(this.url);
-    const chan: Channel = await con.createChannel();
+    const chan: Channel = await this.init(this.uri);
     await chan.assertQueue(queue);
-    await chan.consume(queue, (msg: Message) => {
-      cb(msg.content)
-        .then(() => chan.ack(msg))
-        .catch(rej => {
-          log(rej);
-          chan.nack(msg);
-        });
+    await chan.consume(queue, async (msg: Message) => {
+      try {
+        await cb(msg.content);
+        chan.ack(msg);
+      } catch (rej) {
+        log(rej);
+        chan.nack(msg);
+      }
     });
+  }
+
+  private async init(uri: string) {
+    if (!RabbitMQService.connect) {
+      RabbitMQService.connect = await connect(uri);
+    }
+    if (!this.channel) {
+      this.channel = await RabbitMQService.connect.createChannel();
+    }
+    return this.channel;
   }
 }

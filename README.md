@@ -1,1 +1,1 @@
-RabbitMQ common service
+[IN PROGRESS] RabbitMQ Consumer/Producer Service.
