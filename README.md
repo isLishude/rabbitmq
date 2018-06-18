@@ -1,0 +1,1 @@
+RabbitMQ common service

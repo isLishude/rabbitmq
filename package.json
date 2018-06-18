@@ -1,0 +1,27 @@
+{
+  "name": "rabbitmq-common-service",
+  "version": "1.0.0",
+  "description": "rabbitmq common service",
+  "main": "dist/index.js",
+  "private": true,
+  "types": "types",
+  "scripts": {
+    "build": "rm -rf dist types && tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://101.200.63.188/coinu/rabbitmq-common.git"
+  },
+  "author": "lishude",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/amqplib": "^0.5.7",
+    "@types/node": "^10.1.0",
+    "tslint": "^5.10.0",
+    "tslint-config-prettier": "^1.12.0",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "amqplib": "^0.5.2"
+  }
+}

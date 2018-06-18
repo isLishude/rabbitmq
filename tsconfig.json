@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "dist",
+    "lib": ["es2018"],
+    "removeComments": true,
+    "alwaysStrict": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationDir": "types"
+  },
+  "include": ["src/**/*", "defined/*.d.ts"],
+  "exclude": ["node_modules"]
+}
