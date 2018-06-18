@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const amqplib_1 = require("amqplib");
+const console_1 = require("console");
 class RabbitMQService {
     constructor(con) {
         this.url = con;
@@ -29,12 +30,14 @@ class RabbitMQService {
             const con = yield amqplib_1.connect(this.url);
             const chan = yield con.createChannel();
             yield chan.assertQueue(queue);
-            yield chan.consume(queue, (msg) => __awaiter(this, void 0, void 0, function* () {
-                const ret = yield cb(msg.content);
-                if (ret) {
-                    chan.ack(msg);
-                }
-            }));
+            yield chan.consume(queue, (msg) => {
+                cb(msg.content)
+                    .then(() => chan.ack(msg))
+                    .catch(rej => {
+                    console_1.log(rej);
+                    chan.nack(msg);
+                });
+            });
         });
     }
 }
