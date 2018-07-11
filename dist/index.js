@@ -16,7 +16,7 @@ class RabbitMQService {
     }
     producer(queue, msg) {
         return __awaiter(this, void 0, void 0, function* () {
-            const chan = yield this.init(this.uri);
+            const chan = yield this.init();
             yield chan.assertQueue(queue);
             yield chan.sendToQueue(queue, Buffer.from(msg), {
                 persistent: true
@@ -25,7 +25,7 @@ class RabbitMQService {
     }
     consumer(queue, cb) {
         return __awaiter(this, void 0, void 0, function* () {
-            const chan = yield this.init(this.uri);
+            const chan = yield this.init();
             yield chan.assertQueue(queue);
             yield chan.consume(queue, (msg) => __awaiter(this, void 0, void 0, function* () {
                 try {
@@ -39,10 +39,10 @@ class RabbitMQService {
             }));
         });
     }
-    init(uri) {
+    init() {
         return __awaiter(this, void 0, void 0, function* () {
             if (!RabbitMQService.connect) {
-                RabbitMQService.connect = yield amqplib_1.connect(uri);
+                RabbitMQService.connect = yield amqplib_1.connect(this.uri);
             }
             if (!this.channel) {
                 this.channel = yield RabbitMQService.connect.createChannel();

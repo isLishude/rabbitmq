@@ -10,7 +10,7 @@ export class RabbitMQService {
   }
 
   public async producer(queue: string, msg: string): Promise<void> {
-    const chan: Channel = await this.init(this.uri);
+    const chan: Channel = await this.init();
     await chan.assertQueue(queue);
     await chan.sendToQueue(queue, Buffer.from(msg), {
       persistent: true
@@ -21,7 +21,7 @@ export class RabbitMQService {
     queue: string,
     cb: (msg: Buffer) => Promise<boolean>
   ): Promise<void> {
-    const chan: Channel = await this.init(this.uri);
+    const chan: Channel = await this.init();
     await chan.assertQueue(queue);
     await chan.consume(queue, async (msg: Message) => {
       try {
@@ -34,9 +34,9 @@ export class RabbitMQService {
     });
   }
 
-  private async init(uri: string) {
+  private async init() {
     if (!RabbitMQService.connect) {
-      RabbitMQService.connect = await connect(uri);
+      RabbitMQService.connect = await connect(this.uri);
     }
     if (!this.channel) {
       this.channel = await RabbitMQService.connect.createChannel();
