@@ -34,6 +34,11 @@ export class RabbitMQService {
     });
   }
 
+  public async destructor() {
+    await this.channel.close();
+    await RabbitMQService.connect.close();
+  }
+
   private async init() {
     if (!RabbitMQService.connect) {
       RabbitMQService.connect = await connect(this.uri);

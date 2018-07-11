@@ -39,6 +39,12 @@ class RabbitMQService {
             }));
         });
     }
+    destructor() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.channel.close();
+            yield RabbitMQService.connect.close();
+        });
+    }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
             if (!RabbitMQService.connect) {
