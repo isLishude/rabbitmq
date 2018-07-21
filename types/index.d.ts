@@ -5,7 +5,7 @@ export declare class RabbitMQService {
     private uri;
     constructor(uri: string);
     producer(queue: string, msg: string): Promise<void>;
-    consumer(queue: string, cb: (msg: Buffer) => Promise<boolean>): Promise<void>;
+    consumer(queue: string, cb: (msg: Buffer) => Promise<any>): Promise<void>;
     destructor(): Promise<void>;
     private init;
 }

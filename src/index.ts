@@ -19,7 +19,7 @@ export class RabbitMQService {
 
   public async consumer(
     queue: string,
-    cb: (msg: Buffer) => Promise<boolean>
+    cb: (msg: Buffer) => Promise<any>
   ): Promise<void> {
     const chan: Channel = await this.init();
     await chan.assertQueue(queue);
