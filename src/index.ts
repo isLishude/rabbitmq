@@ -26,11 +26,10 @@ export class RabbitMQService {
     await chan.consume(queue, async (msg: Message) => {
       try {
         await cb(msg.content);
-        chan.ack(msg);
       } catch (rej) {
         log(rej);
-        chan.nack(msg);
       }
+      chan.ack(msg);
     });
   }
 
@@ -44,7 +43,7 @@ export class RabbitMQService {
       RabbitMQService.connect = await connect(this.uri);
     }
     if (!this.channel) {
-      this.channel = await RabbitMQService.connect.createChannel();
+      this.channel = await RabbitMQService.connect.createConfirmChannel();
     }
     return this.channel;
   }

@@ -6,7 +6,9 @@ const queue = "test";
 
 const rabbit = new RabbitMQService(uri);
 
-rabbit.consumer(queue, async (msg: Buffer) => {
+rabbit
+  .consumer(queue, async (msg: Buffer) => {
   log(msg.toString());
   return true;
-});
+  })
+  .catch(e => log(e.message + "\n" + e.stack));

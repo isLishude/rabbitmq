@@ -30,12 +30,11 @@ class RabbitMQService {
             yield chan.consume(queue, (msg) => __awaiter(this, void 0, void 0, function* () {
                 try {
                     yield cb(msg.content);
-                    chan.ack(msg);
                 }
                 catch (rej) {
                     console_1.log(rej);
-                    chan.nack(msg);
                 }
+                chan.ack(msg);
             }));
         });
     }
@@ -51,7 +50,7 @@ class RabbitMQService {
                 RabbitMQService.connect = yield amqplib_1.connect(this.uri);
             }
             if (!this.channel) {
-                this.channel = yield RabbitMQService.connect.createChannel();
+                this.channel = yield RabbitMQService.connect.createConfirmChannel();
             }
             return this.channel;
         });
