@@ -3,9 +3,10 @@ version: "3"
 services:
   
   rabbitmq:
-    image: rabbitmq
+    image: "rabbitmq:3.7-managment"
     ports:
-      - 5672:5672
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - ${PWD}/tmp:/var/lib/rabbitmq
     
