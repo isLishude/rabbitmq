@@ -34,8 +34,12 @@ export class RabbitMQService {
   }
 
   public async destructor() {
-    await this.channel.close();
-    await RabbitMQService.connect.close();
+    if (this.channel) {
+      await this.channel.close();
+    }
+    if (RabbitMQService.connect) {
+      await RabbitMQService.connect.close();
+    }
   }
 
   private async init() {
