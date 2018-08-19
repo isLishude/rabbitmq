@@ -10,6 +10,7 @@ class RabbitMQService {
         this.chanIndex = 0;
         this.uri = uri;
         this.chanCount = chanCount;
+        this.init().catch(console_1.log);
     }
     async producer(queue, msg) {
         const chan = await this.getChannel();
@@ -52,8 +53,8 @@ class RabbitMQService {
                 return chan;
             });
             this.channels = await Promise.all(tmp);
+            console_1.log("RabbitMQ initial successful");
         }
-        console_1.log("RabbitMQ initial successful");
     }
     async getChannel() {
         const index = this.chanIndex++ % this.chanCount;

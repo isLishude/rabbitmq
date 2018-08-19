@@ -11,6 +11,7 @@ export class RabbitMQService {
   constructor(uri: string, chanCount: number = 10) {
     this.uri = uri;
     this.chanCount = chanCount;
+    this.init().catch(log);
   }
 
   public async producer(queue: string, msg: string): Promise<void> {
@@ -60,8 +61,8 @@ export class RabbitMQService {
       });
 
       this.channels = await Promise.all(tmp);
+      log("RabbitMQ initial successful");
     }
-    log("RabbitMQ initial successful");
   }
 
   public async getChannel() {
