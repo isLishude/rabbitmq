@@ -3,14 +3,27 @@ import { log } from "console";
 
 export class RabbitMQService {
   private static connect: Connection;
-  private channel: Channel;
+  private channels: Channel[] = [];
   private uri: string;
-  constructor(uri: string) {
+  private chanCount: number;
+  private chanIndex: number = 0;
+
+  constructor(uri: string, chanCount: number = 10) {
     this.uri = uri;
+    this.chanCount = chanCount;
+    this.getChannel()
+      .then(() => {
+        log("RabbitMQ Connections & Channels initial successful");
+        log("RabbitMQ url %s Channel count %d", uri, chanCount);
+      })
+      .catch(e => {
+        log("RabbitMQ Connections & Channels initial failed");
+        log("Error reason %s", e.message);
+      });
   }
 
   public async producer(queue: string, msg: string): Promise<void> {
-    const chan: Channel = await this.init();
+    const chan: Channel = await this.getChannel();
     await chan.assertQueue(queue);
     await chan.sendToQueue(queue, Buffer.from(msg), {
       persistent: true
@@ -21,7 +34,7 @@ export class RabbitMQService {
     queue: string,
     cb: (msg: Buffer) => Promise<any>
   ): Promise<void> {
-    const chan: Channel = await this.init();
+    const chan: Channel = await this.getChannel();
     await chan.assertQueue(queue);
     await chan.consume(queue, async (msg: Message) => {
       try {
@@ -34,21 +47,37 @@ export class RabbitMQService {
   }
 
   public async destructor() {
-    if (this.channel) {
-      await this.channel.close();
+    if (this.channels.length) {
+      const tmp = this.channels.map(async chan => {
+        await chan.close();
+      });
+      await Promise.all(tmp);
     }
     if (RabbitMQService.connect) {
       await RabbitMQService.connect.close();
     }
   }
 
-  private async init() {
+  private async getChannel() {
     if (!RabbitMQService.connect) {
       RabbitMQService.connect = await connect(this.uri);
     }
-    if (!this.channel) {
-      this.channel = await RabbitMQService.connect.createConfirmChannel();
+    if (this.channels.length === 0) {
+      const tmp = [...new Array(this.chanCount)].map(async () => {
+        const chan = await RabbitMQService.connect.createConfirmChannel();
+        return chan;
+      });
+
+      this.channels = await Promise.all(tmp);
     }
-    return this.channel;
+    return this.channels[this.getChanIndex()];
+  }
+
+  private getChanIndex(): number {
+    const res: number = this.chanIndex++ % this.chanCount;
+    if (this.chanCount >= this.chanCount) {
+      this.chanIndex = 0;
+    }
+    return res;
   }
 }

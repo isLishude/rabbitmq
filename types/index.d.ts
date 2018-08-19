@@ -1,11 +1,14 @@
 /// <reference types="node" />
 export declare class RabbitMQService {
     private static connect;
-    private channel;
+    private channels;
     private uri;
-    constructor(uri: string);
+    private chanCount;
+    private chanIndex;
+    constructor(uri: string, chanCount?: number);
     producer(queue: string, msg: string): Promise<void>;
     consumer(queue: string, cb: (msg: Buffer) => Promise<any>): Promise<void>;
     destructor(): Promise<void>;
-    private init;
+    private getChannel;
+    private getChanIndex;
 }
