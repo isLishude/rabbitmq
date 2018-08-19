@@ -4,22 +4,13 @@ import { log } from "console";
 export class RabbitMQService {
   private static connect: Connection;
   private channels: Channel[] = [];
-  private uri: string;
-  private chanCount: number;
+  private uri: string = "amqp://localhost:5672";
+  private chanCount: number = 10;
   private chanIndex: number = 0;
 
   constructor(uri: string, chanCount: number = 10) {
     this.uri = uri;
     this.chanCount = chanCount;
-    this.getChannel()
-      .then(() => {
-        log("RabbitMQ Connections & Channels initial successful");
-        log("RabbitMQ url %s Channel count %d", uri, chanCount);
-      })
-      .catch(e => {
-        log("RabbitMQ Connections & Channels initial failed");
-        log("Error reason %s", e.message);
-      });
   }
 
   public async producer(queue: string, msg: string): Promise<void> {
@@ -58,7 +49,7 @@ export class RabbitMQService {
     }
   }
 
-  private async getChannel() {
+  public async init() {
     if (!RabbitMQService.connect) {
       RabbitMQService.connect = await connect(this.uri);
     }
@@ -70,14 +61,14 @@ export class RabbitMQService {
 
       this.channels = await Promise.all(tmp);
     }
-    return this.channels[this.getChanIndex()];
+    log("RabbitMQ initial successful");
   }
 
-  private getChanIndex(): number {
-    const res: number = this.chanIndex++ % this.chanCount;
+  public async getChannel() {
+    const index: number = this.chanIndex++ % this.chanCount;
     if (this.chanCount >= this.chanCount) {
       this.chanIndex = 0;
     }
-    return res;
+    return this.channels[index];
   }
 }

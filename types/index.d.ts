@@ -1,4 +1,5 @@
 /// <reference types="node" />
+import { Channel } from "amqplib";
 export declare class RabbitMQService {
     private static connect;
     private channels;
@@ -9,6 +10,6 @@ export declare class RabbitMQService {
     producer(queue: string, msg: string): Promise<void>;
     consumer(queue: string, cb: (msg: Buffer) => Promise<any>): Promise<void>;
     destructor(): Promise<void>;
-    private getChannel;
-    private getChanIndex;
+    init(): Promise<void>;
+    getChannel(): Promise<Channel>;
 }

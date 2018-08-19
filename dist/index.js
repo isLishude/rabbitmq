@@ -5,18 +5,11 @@ const console_1 = require("console");
 class RabbitMQService {
     constructor(uri, chanCount = 10) {
         this.channels = [];
+        this.uri = "amqp://localhost:5672";
+        this.chanCount = 10;
         this.chanIndex = 0;
         this.uri = uri;
         this.chanCount = chanCount;
-        this.getChannel()
-            .then(() => {
-            console_1.log("RabbitMQ Connections & Channels initial successful");
-            console_1.log("RabbitMQ url %s Channel count %d", uri, chanCount);
-        })
-            .catch(e => {
-            console_1.log("RabbitMQ Connections & Channels initial failed");
-            console_1.log("Error reason %s", e.message);
-        });
     }
     async producer(queue, msg) {
         const chan = await this.getChannel();
@@ -49,7 +42,7 @@ class RabbitMQService {
             await RabbitMQService.connect.close();
         }
     }
-    async getChannel() {
+    async init() {
         if (!RabbitMQService.connect) {
             RabbitMQService.connect = await amqplib_1.connect(this.uri);
         }
@@ -60,14 +53,14 @@ class RabbitMQService {
             });
             this.channels = await Promise.all(tmp);
         }
-        return this.channels[this.getChanIndex()];
+        console_1.log("RabbitMQ initial successful");
     }
-    getChanIndex() {
-        const res = this.chanIndex++ % this.chanCount;
+    async getChannel() {
+        const index = this.chanIndex++ % this.chanCount;
         if (this.chanCount >= this.chanCount) {
             this.chanIndex = 0;
         }
-        return res;
+        return this.channels[index];
     }
 }
 exports.RabbitMQService = RabbitMQService;
