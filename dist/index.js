@@ -33,7 +33,11 @@ class RabbitMQService {
     }
     async destructor() {
         if (RabbitMQService.connect) {
-            await RabbitMQService.connect.close();
+            try {
+                await RabbitMQService.connect.close();
+            }
+            catch (_a) {
+            }
         }
     }
     async init() {
@@ -52,7 +56,7 @@ class RabbitMQService {
     async getChannel() {
         await this.init();
         const index = this.chanIndex++ % this.chanCount;
-        if (this.chanCount >= this.chanCount) {
+        if (this.chanIndex >= this.chanCount) {
             this.chanIndex = 0;
         }
         return this.channels[index];

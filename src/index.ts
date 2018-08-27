@@ -38,14 +38,12 @@ export class RabbitMQService {
   }
 
   public async destructor() {
-    // if (this.channels.length) {
-    //   const tmp = this.channels.map(async chan => {
-    //     await chan.close();
-    //   });
-    //   await Promise.all(tmp);
-    // }
     if (RabbitMQService.connect) {
-      await RabbitMQService.connect.close();
+      try {
+        await RabbitMQService.connect.close();
+      } catch {
+        //
+      }
     }
   }
 
@@ -67,7 +65,7 @@ export class RabbitMQService {
   public async getChannel() {
     await this.init();
     const index: number = this.chanIndex++ % this.chanCount;
-    if (this.chanCount >= this.chanCount) {
+    if (this.chanIndex >= this.chanCount) {
       this.chanIndex = 0;
     }
     return this.channels[index];
