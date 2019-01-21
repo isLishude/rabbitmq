@@ -1,18 +1,30 @@
-import { Channel, connect, Connection, Message } from "amqplib";
-import { log } from "console";
+import { Channel, connect, Connection, Message, ConfirmChannel } from "amqplib";
+import { error } from "console";
 
 export class RabbitMQService {
-  private static connect: Connection;
+  private connection: Connection;
   private channel: Channel;
-  private uri: string;
-  constructor(uri: string) {
-    this.uri = uri;
+  private CONNECTED: boolean = false;
+  constructor(private uri: string = "amqp://127.0.0.1:5672") {
+    (async () => {
+      this.connection = await connect(this.uri);
+      this.channel = await this.connection.createConfirmChannel();
+      this.CONNECTED = true;
+    })().catch(e => {
+      throw e;
+    });
   }
 
   public async producer(queue: string, msg: string): Promise<void> {
-    const chan: Channel = await this.init();
-    await chan.assertQueue(queue);
-    await chan.sendToQueue(queue, Buffer.from(msg), {
+    if (!this.CONNECTED) {
+      setTimeout(() => {
+        this.producer(queue, msg);
+      }, 1000);
+      return;
+    }
+
+    await this.channel.assertQueue(queue);
+    await this.channel.sendToQueue(queue, Buffer.from(msg), {
       persistent: true
     });
   }
@@ -21,15 +33,21 @@ export class RabbitMQService {
     queue: string,
     cb: (msg: Buffer) => Promise<any>
   ): Promise<void> {
-    const chan: Channel = await this.init();
-    await chan.assertQueue(queue);
-    await chan.consume(queue, async (msg: Message) => {
+    if (!this.CONNECTED) {
+      setTimeout(() => {
+        this.consumer(queue, cb);
+      }, 1000);
+      return;
+    }
+
+    await this.channel.assertQueue(queue);
+    await this.channel.consume(queue, async (msg: Message) => {
       try {
         await cb(msg.content);
       } catch (rej) {
-        log(rej);
+        error(rej);
       }
-      chan.ack(msg);
+      this.channel.ack(msg);
     });
   }
 
@@ -37,18 +55,8 @@ export class RabbitMQService {
     if (this.channel) {
       await this.channel.close();
     }
-    if (RabbitMQService.connect) {
-      await RabbitMQService.connect.close();
+    if (this.connection) {
+      await this.connection.close();
     }
-  }
-
-  private async init() {
-    if (!RabbitMQService.connect) {
-      RabbitMQService.connect = await connect(this.uri);
-    }
-    if (!this.channel) {
-      this.channel = await RabbitMQService.connect.createConfirmChannel();
-    }
-    return this.channel;
   }
 }

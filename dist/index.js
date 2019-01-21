@@ -3,45 +3,54 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const amqplib_1 = require("amqplib");
 const console_1 = require("console");
 class RabbitMQService {
-    constructor(uri) {
+    constructor(uri = "amqp://127.0.0.1:5672") {
         this.uri = uri;
+        this.CONNECTED = false;
+        (async () => {
+            this.connection = await amqplib_1.connect(this.uri);
+            this.channel = await this.connection.createConfirmChannel();
+            this.CONNECTED = true;
+        })().catch(e => {
+            throw e;
+        });
     }
     async producer(queue, msg) {
-        const chan = await this.init();
-        await chan.assertQueue(queue);
-        await chan.sendToQueue(queue, Buffer.from(msg), {
+        if (!this.CONNECTED) {
+            setTimeout(() => {
+                this.producer(queue, msg);
+            }, 1000);
+            return;
+        }
+        await this.channel.assertQueue(queue);
+        await this.channel.sendToQueue(queue, Buffer.from(msg), {
             persistent: true
         });
     }
     async consumer(queue, cb) {
-        const chan = await this.init();
-        await chan.assertQueue(queue);
-        await chan.consume(queue, async (msg) => {
+        if (!this.CONNECTED) {
+            setTimeout(() => {
+                this.consumer(queue, cb);
+            }, 1000);
+            return;
+        }
+        await this.channel.assertQueue(queue);
+        await this.channel.consume(queue, async (msg) => {
             try {
                 await cb(msg.content);
             }
             catch (rej) {
-                console_1.log(rej);
+                console_1.error(rej);
             }
-            chan.ack(msg);
+            this.channel.ack(msg);
         });
     }
     async destructor() {
         if (this.channel) {
             await this.channel.close();
         }
-        if (RabbitMQService.connect) {
-            await RabbitMQService.connect.close();
+        if (this.connection) {
+            await this.connection.close();
         }
-    }
-    async init() {
-        if (!RabbitMQService.connect) {
-            RabbitMQService.connect = await amqplib_1.connect(this.uri);
-        }
-        if (!this.channel) {
-            this.channel = await RabbitMQService.connect.createConfirmChannel();
-        }
-        return this.channel;
     }
 }
 exports.RabbitMQService = RabbitMQService;
