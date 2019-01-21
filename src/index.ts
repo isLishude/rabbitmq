@@ -1,4 +1,4 @@
-import { Channel, connect, Connection, Message, ConfirmChannel } from "amqplib";
+import { Channel, connect, Connection, Message } from "amqplib";
 import { error } from "console";
 
 export class RabbitMQService {
